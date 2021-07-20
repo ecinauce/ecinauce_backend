@@ -1,0 +1,27 @@
+Users (Class)
+
+ID (db_provided_id)
+Name (String)
+Objective (String)
+Projects (Class)
+Skills (List)
+>Technologies (List of Categories)
+>Hobbies (List of Categories)
+>More?
+Experience (Class)
+>Work (List of Institutions)
+>Education (List of Institutions)
+>More?
+Contacts (Class of Contacts)
+
+Categories
+>has multiple Tags
+
+Tags
+>User Generated
+
+Institutions
+>Entities with Attributes
+
+Contacts
+>User Attributes
