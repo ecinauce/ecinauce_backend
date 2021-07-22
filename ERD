@@ -4,11 +4,11 @@ ID (db_provided_id)
 Name (String)
 Objective (String)
 Projects (Class)
-Skills (List)
+[/]Skills (List)
 >Technologies (List of Categories)
 >Hobbies (List of Categories)
 >More?
-Experience (Class)
+[/]Experience (Class)
 >Work (List of Institutions)
 >Education (List of Institutions)
 >More?

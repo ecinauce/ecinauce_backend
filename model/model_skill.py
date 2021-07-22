@@ -1,5 +1,6 @@
-from model_category import Category
-from settings import project_db
+from .model_category import Category
+from ..settings import project_db
+from ..utils import bson_parse
 
 
 class Skill:
@@ -18,7 +19,18 @@ class Skill:
 		self.categories.add(cat_id)
 
 
-	def db_commit(self):
+	def load(self):
+		item = project_db["skills"].find_one({"_id": self._id})
+		return bson_parse(item)
+	
+
+	def get_json(self):
+		item = self.load()
+		item["categories"] = [Category(cat).load() for cat in self.categories]
+		return item
+	
+
+	def commit(self):
 		project_db["skills"].replace_one(
 			{"_id": self._id}, 
 			self.__dict__, 

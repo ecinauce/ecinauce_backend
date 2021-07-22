@@ -1,6 +1,4 @@
-from model_user import User
-
 class Contact:
-	def __init__(self, user):
-		self.user = user # exsting mongoId
+	def __init__(self, _id):
+		self._id = _id # exsting mongoId
 		self.details = {} # import from mongo
