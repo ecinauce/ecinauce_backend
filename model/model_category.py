@@ -1,5 +1,5 @@
 from .model_tag import Tag
-from ..settings import 
+from ..settings import project_db
 from ..utils import bson_parse
 
 

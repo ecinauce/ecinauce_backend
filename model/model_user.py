@@ -8,6 +8,7 @@ from ..utils import bson_parse
 class User:
 	def __init__(self, _id):
 		self.name = ""
+		self.username = ""
 		self._id = _id
 		self.objective = ""
 		self.skills = []
@@ -52,7 +53,7 @@ class User:
 		item["skills"] = [Skill(skill).load() for skill in self.skills]
 		item["experiences"] = [Experience(exp).load() for exp in self.experiences]
 		item["contacts"] = [Contact(cont).load() for cont in self.contacts]
-		return item
+		return bson_parse(item)
 	
 
 	def commit(self):

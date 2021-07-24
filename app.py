@@ -1,58 +1,66 @@
-from flask import Flask
-from flask import session
-from flask import request
-from flask import render_template, url_for
+from flask import Flask, session, request, render_template, url_for, redirect
 from flask.json import jsonify
 
 from .model.model_user import User
 from .settings import project_db
+from .utils import validate_user, validate_registration
 
 
 app = Flask(__name__)
-# app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-
-
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 
 @app.route("/user/<username>")
 def get_user(username):
-	user = project_db["users"].find_one({"name": username})["_id"]
-	return User(user).get_json()
+	if 'username' in session:
+		user = project_db["users"].find_one({"username": username})["_id"]
+		return User(user).get_json()
+	return 'You are not logged in'
+	
+
+### Logins are a problem for another day
+@app.route('/')
+def index():
+	if 'username' in session:
+		user = project_db["users"].find_one({"username": session["username"]})["_id"]
+		return User(user).get_json()
+	return 'You are not logged in'
 
 
-@app.route("/reg_user/", methods=['POST', 'GET'])
-def reg_user():
+@app.route("/register", methods=['POST', 'GET'])
+def register():
 	if request.method == 'POST':
-		user_item = project_db["users"].insert_one({"name": request.form['username']})
-		user_id = user_item.inserted_id
-		return jsonify(User(user_id).get_json())
+		if validate_registration(request.form['username']):
+			user_item = project_db["users"].insert_one({"username": request.form['username']})
+			user_id = user_item.inserted_id
+			return jsonify(User(user_id).get_json())
+		else:
+			return '''<b>User already exists</b>'''
 	return render_template('register.html')
 
 
-### Logins are a problem for another day
-# @app.route('/', user=user)
-# def index():
-#     if 'username' in session:
-#         return f'Logged in as {session["username"]}'
-#     return 'You are not logged in'
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	if request.method == 'POST':
+		if validate_user(request.form["username"]):
+			session['username'] = request.form['username']
+			return redirect(url_for('index'))
+		else:
+			return '''
+				<b>Invalid Credentials</b>
+				<form method="post">
+					<p><input type=text name=username>
+					<p><input type=submit value=Login>
+				</form>	'''	
+	return '''
+		<form method="post">
+			<p><input type=text name=username>
+			<p><input type=submit value=Login>
+		</form>	'''
 
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     if request.method == 'POST':
-#         session['username'] = request.form['username']
-#         return redirect(url_for('index'))
-#     return '''
-#         <form method="post">
-#             <p><input type=text name=username>
-#             <p><input type=submit value=Login>
-#         </form>
-#     '''
 
-# @app.route('/logout')
-# def logout():
-#     # remove the username from the session if it's there
-#     session.pop('username', None)
-#     return redirect(url_for('index'))
+@app.route('/logout')
+def logout():
+	# remove the username from the session if it's there
+	session.pop('username', None)
+	return redirect(url_for('index'))

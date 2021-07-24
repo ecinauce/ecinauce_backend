@@ -1,4 +1,4 @@
-from ..settings import 
+from ..settings import project_db
 from ..utils import bson_parse
 
 
