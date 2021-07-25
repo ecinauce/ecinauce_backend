@@ -10,25 +10,6 @@ app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 
-@app.route("/user/<username>")
-def get_user(username):
-	if 'username' in session:
-		if session["username"] == username:
-			user = project_db["users"].find_one({"username": username})["_id"]
-			return User(user).get_json()
-		else:
-			return 'Invalid User'
-	return 'You are not logged in'
-	
-
-@app.route('/')
-def index():
-	if 'username' in session:
-		user = project_db["users"].find_one({"username": session["username"]})["_id"]
-		return User(user).get_json()
-	return 'You are not logged in'
-
-
 @app.route("/register", methods=['POST', 'GET'])
 def register():
 	if request.method == 'POST':
@@ -76,4 +57,49 @@ def login():
 def logout():
 	# remove the username from the session if it's there
 	session.pop('username', None)
+	return redirect(url_for('index'))
+
+
+@app.route('/')
+def index():
+	if 'username' in session:
+		user = project_db["users"].find_one({"username": session["username"]})["_id"]
+		return User(user).get_json()
+	return 'You are not logged in'
+
+
+@app.route("/user/<username>")
+def get_user(username):
+	if 'username' in session:
+		if session["username"] == username:
+			user = project_db["users"].find_one({"username": username})["_id"]
+			return User(user).get_json()
+		else:
+			return 'Invalid User'
+	return 'You are not logged in'
+	
+
+@app.route("/update_user", methods=['POST'])
+def update():
+	if 'username' in session:
+		if request.method == "POST":
+			user_id = project_db["users"].find_one({"username": session['username']})["_id"]
+			user = User(user_id).get_json()
+			form = request.form.to_dict()
+			user.update(form)
+			return user
+		return redirect(url_for('index'))
+	return redirect(url_for('index'))
+
+
+@app.route("/update_experience", methods=['POST'])
+def update():
+	if 'username' in session:
+		if request.method == "POST":
+			user_id = project_db["users"].find_one({"username": session['username']})["_id"]
+			user = User(user_id).get_json()
+			form = request.form.to_dict()
+			user.update(form)
+			return user
+		return redirect(url_for('index'))
 	return redirect(url_for('index'))
