@@ -1,20 +1,40 @@
 import jwt, os
+
 from traceback import print_exc
-from flask import Flask, session, request, render_template, url_for, redirect
-from flask_cors import CORS
-from flask.json import jsonify
 from passlib.hash import sha256_crypt
+from functools import wraps
+
+from flask import Flask, session, request, render_template, url_for, redirect
+from flask_cors import CORS, cross_origin
+from flask.json import jsonify
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+
 from .model.model_user import User
 from .settings import project_db
 from .utils import validate_user, validate_registration, bson_parse
-from functools import wraps
 
 
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
-CORS(app)
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    REMEMBER_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    CORS_HEADERS='Content-Type'
+)
+
+# CSRFProtect(app)
+CORS(app, expose_headers=["Content-Type", "X-CSRFToken"], support_credentials=True)
 
 # CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+@app.route("/getcsrf", methods=["GET"])
+def get_csrf():
+    token = generate_csrf()
+    response = jsonify({"detail": "CSRF cookie set"})
+    response.headers.set("X-CSRFToken", token)
+    return response
+
 
 @app.route("/register", methods=['POST', 'GET'])
 def register():
@@ -33,12 +53,14 @@ def register():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+# @cross_origin()
 def login():
 	if request.method == 'POST':
 		output = dict(request.get_json())
 		if validate_user(output["username"], output["password"]):
 			session['username'] = output['username']
-			return {"message": "Logged in"}
+			response = jsonify(session)
+			return response
 		else:
 			return '''
 				<b>Login</b>
@@ -69,6 +91,7 @@ def logout():
 
 
 @app.route('/')
+@cross_origin()
 def index():
 	if 'username' in session:
 		user = project_db["users"].find_one({"username": session["username"]})["_id"]
